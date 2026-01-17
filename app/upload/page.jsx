@@ -6,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ref, push, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { analyzeBias } from '@/lib/geminiConfig';
 import toast from 'react-hot-toast';
 import { useScrollReveal } from '@/lib/hooks/useScrollReveal';
 
@@ -71,8 +70,22 @@ function UploadContent() {
     const loadingToast = toast.loading('🤖 Analyzing with Gemini AI...');
 
     try {
-      // Analyze with Gemini
-      const analysis = await analyzeBias(emailText);
+      // Analyze with Gemini via API route
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emailText }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Analysis failed');
+      }
+
+      const analysis = data.analysis;
 
       // Save to Firebase
       const uploadsRef = ref(db, `uploads/${user.uid}`);
