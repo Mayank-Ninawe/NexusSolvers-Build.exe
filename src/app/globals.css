@@ -1,22 +1,83 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   BiasBreaker Theme Variables
+   ============================================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background colors */
+  --bg-primary: #F5F3FF;
+  --bg-secondary: #EDE9FE;
+  --card-bg: #FFFFFF;
+  
+  /* Brand colors */
+  --primary: #4F46E5;
+  --primary-dark: #4338CA;
+  --secondary: #7C3AED;
+  
+  /* Accent colors */
+  --accent-pink: #EC4899;
+  --accent-blue: #3B82F6;
+  
+  /* Semantic colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  
+  /* Text colors */
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  
+  /* Border & Shadow */
+  --border: #E5E7EB;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  /* Legacy support */
+  --background: #F5F3FF;
+  --foreground: #1F2937;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================================
+   Base Styles
+   ============================================================================ */
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
+
+/* Focus visible styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Skip link for accessibility */
+.sr-only:focus {
+  position: absolute !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 1rem !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -31,6 +92,54 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient button utility */
+.btn-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+/* Card utilities */
+.card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
 /* Enhanced Print styles for reports */
 @media print {
   nav, .no-print, button {
