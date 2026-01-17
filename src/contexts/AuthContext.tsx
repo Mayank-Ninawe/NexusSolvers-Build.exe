@@ -20,6 +20,9 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
   updateProfile,
+  signInAnonymously,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 import {
   doc,
@@ -65,11 +68,15 @@ interface LoginCredentials {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  isAuthenticated: boolean;
+  isAnonymous: boolean;
   isAdmin: boolean;
   isCollegeAdmin: boolean;
   isStudent: boolean;
   signup: (credentials: SignupCredentials) => Promise<void>;
   login: (credentials: LoginCredentials) => Promise<AuthUser>;
+  loginAnonymously: () => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
   logout: () => Promise<void>;
   error: string | null;
   clearError: () => void;
@@ -318,6 +325,78 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   /**
+   * Signs in anonymously for demo/testing purposes
+   */
+  async function loginAnonymously(): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    try {
+      setError(null);
+      setLoading(true);
+
+      const userCredential = await signInAnonymously(auth);
+      const firebaseUser = userCredential.user;
+
+      // Create user data for anonymous user
+      const authUser: AuthUser = {
+        uid: firebaseUser.uid,
+        id: firebaseUser.uid,
+        email: 'anonymous@biasbreaker.com',
+        displayName: 'Anonymous User',
+        role: 'student',
+        collegeName: 'Demo College',
+        collegeId: 'demo',
+        createdAt: new Date(),
+      };
+
+      setUser(authUser);
+      return { success: true, user: authUser };
+    } catch (err) {
+      const errorMessage = getAuthErrorMessage(err);
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
+   * Signs in with Google OAuth
+   */
+  async function loginWithGoogle(): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+    try {
+      setError(null);
+      setLoading(true);
+
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const firebaseUser = userCredential.user;
+
+      // Fetch or create user data
+      const authUser = await fetchUserData(firebaseUser);
+      
+      if (!authUser) {
+        throw new Error('Failed to load user data');
+      }
+
+      setUser(authUser);
+      return { success: true, user: authUser };
+    } catch (err: any) {
+      // Handle specific popup errors
+      if (err.code === 'auth/popup-closed-by-user') {
+        return { success: false, error: 'Login cancelled' };
+      }
+      if (err.code === 'auth/cancelled-popup-request') {
+        return { success: false, error: 'Login cancelled' };
+      }
+      
+      const errorMessage = getAuthErrorMessage(err);
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
    * Signs out the current user and clears state
    */
   async function logout(): Promise<void> {
@@ -357,11 +436,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     user,
     loading,
+    isAuthenticated: !!user,
+    isAnonymous: user?.email === 'anonymous@biasbreaker.com',
     isAdmin,
     isCollegeAdmin,
     isStudent,
     signup,
     login,
+    loginAnonymously,
+    loginWithGoogle,
     logout,
     error,
     clearError,

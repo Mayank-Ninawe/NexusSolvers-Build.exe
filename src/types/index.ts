@@ -101,6 +101,8 @@ export interface Analysis {
   timestamp: Date;
   /** Overall severity classification of the analysis */
   severity: BiasSeverity;
+  /** Optional department name for departmental analysis */
+  department?: string;
 }
 
 // ============================================================================
@@ -115,6 +117,34 @@ export interface College {
   id: string;
   /** Official name of the college */
   name: string;
+  /** Total number of analyses/reports submitted for this college */
+  totalReports: number;
+  /** @deprecated Use totalReports instead */
+  totalAnalyses?: number;
+  /** Average bias score across all analyses (0-100) */
+  averageBiasScore: number;
+  /** Count of high-severity incidents flagged */
+  highSeverityCount: number;
+  /** @deprecated Use highSeverityCount instead */
+  criticalIncidents?: number;
+  /** Timestamp of the last activity/submission */
+  lastActivity: Date;
+  /** @deprecated Use lastActivity instead */
+  lastUpdated?: Date;
+  /** List of departments within the college */
+  departments: string[];
+  /** Most common bias types detected in this college */
+  commonBiasTypes?: BiasType[];
+}
+
+/**
+ * Statistics for a specific college (used in admin dashboard)
+ */
+export interface CollegeStats {
+  /** Unique identifier for the college */
+  id: string;
+  /** Official name of the college */
+  name: string;
   /** Total number of analyses submitted for this college */
   totalAnalyses: number;
   /** Average bias score across all analyses (0-100) */
@@ -124,7 +154,9 @@ export interface College {
   /** Timestamp of the last data update */
   lastUpdated: Date;
   /** List of departments within the college */
-  departments: string[];
+  departments?: string[];
+  /** Recent analysis trend */
+  trend?: 'up' | 'down' | 'stable';
 }
 
 // ============================================================================

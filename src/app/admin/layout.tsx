@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import AdminSidebar from '@/components/admin/AdminSidebar';

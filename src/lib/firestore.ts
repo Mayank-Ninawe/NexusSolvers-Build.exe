@@ -11,6 +11,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -92,11 +93,15 @@ function docToCollege(id: string, data: Record<string, unknown>): College {
   return {
     id,
     name: data.name as string,
-    totalAnalyses: data.totalAnalyses as number,
+    totalReports: (data.totalReports ?? data.totalAnalyses ?? 0) as number,
+    totalAnalyses: data.totalAnalyses as number | undefined,
     averageBiasScore: data.averageBiasScore as number,
-    criticalIncidents: data.criticalIncidents as number,
-    lastUpdated: convertTimestamp(data.lastUpdated as Timestamp | Date),
+    highSeverityCount: (data.highSeverityCount ?? data.criticalIncidents ?? 0) as number,
+    criticalIncidents: data.criticalIncidents as number | undefined,
+    lastActivity: convertTimestamp((data.lastActivity ?? data.lastUpdated) as Timestamp | Date),
+    lastUpdated: data.lastUpdated ? convertTimestamp(data.lastUpdated as Timestamp | Date) : undefined,
     departments: data.departments as string[],
+    commonBiasTypes: data.commonBiasTypes as College['commonBiasTypes'],
   };
 }
 
@@ -183,6 +188,65 @@ export async function getAllAnalyses(): Promise<Analysis[]> {
     console.error('Error fetching all analyses:', error);
     throw new Error(
       `Failed to fetch all analyses: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Retrieves a specific analysis by ID
+ * @param analysisId - The analysis document ID
+ * @returns Analysis data or null if not found
+ * @throws Error if fetch operation fails
+ */
+export async function getAnalysisById(analysisId: string): Promise<Analysis | null> {
+  try {
+    const analysisRef = doc(db, COLLECTIONS.ANALYSES, analysisId);
+    const analysisSnap = await getDoc(analysisRef);
+    
+    if (!analysisSnap.exists()) {
+      return null;
+    }
+    
+    return docToAnalysis(analysisSnap.id, analysisSnap.data() as Record<string, unknown>);
+  } catch (error) {
+    console.error('Error fetching analysis:', error);
+    throw new Error(
+      `Failed to fetch analysis: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Deletes an analysis from Firestore
+ * @param analysisId - The analysis document ID to delete
+ * @throws Error if delete operation fails
+ */
+export async function deleteAnalysis(analysisId: string): Promise<void> {
+  try {
+    const analysisRef = doc(db, COLLECTIONS.ANALYSES, analysisId);
+    await deleteDoc(analysisRef);
+  } catch (error) {
+    console.error('Error deleting analysis:', error);
+    throw new Error(
+      `Failed to delete analysis: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Updates an analysis title
+ * @param analysisId - The analysis document ID
+ * @param newTitle - The new title for the analysis
+ * @throws Error if update operation fails
+ */
+export async function updateAnalysisTitle(analysisId: string, newTitle: string): Promise<void> {
+  try {
+    const analysisRef = doc(db, COLLECTIONS.ANALYSES, analysisId);
+    await updateDoc(analysisRef, { title: newTitle });
+  } catch (error) {
+    console.error('Error updating analysis title:', error);
+    throw new Error(
+      `Failed to update analysis title: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }
